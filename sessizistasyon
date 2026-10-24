@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0d10">
+  <title>DOSYA #01: SESSIZ ISTASYON</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      background-color: #0b0d10;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    body.theme-paper {
+      background-color: #f4ecd8;
+      color: #262220;
+      font-family: Georgia, serif;
+    }
+    body.theme-amber {
+      background-color: #120e07;
+      color: #ffb000;
+    }
+
+    .g-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .g-controls {
+      display: flex;
+      gap: 6px;
+    }
+    .g-btn {
+      background: transparent;
+      border: 1px solid rgba(128, 128, 128, 0.45);
+      color: inherit;
+      padding: 5px 9px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .g-status {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: rgba(128, 128, 128, 0.08);
+      border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+      font-size: 11px;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      flex-shrink: 0;
+    }
+
+    .g-viewport {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px 18px;
+      line-height: 1.75;
+      font-size: 16px;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .g-choices {
+      padding: 14px 16px 22px 16px;
+      border-top: 1px solid rgba(128, 128, 128, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      flex-shrink: 0;
+    }
+    .c-btn {
+      background: rgba(128, 128, 128, 0.1);
+      border: 1px solid rgba(128, 128, 128, 0.45);
+      color: inherit;
+      padding: 13px 15px;
+      text-align: left;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .c-btn:active {
+      background: rgba(128, 128, 128, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="g-header">
+    <div><strong>DOSYA #01:</strong> SESSIZ ISTASYON</div>
+    <div class="g-controls">
+      <button class="g-btn" onclick="toggleSound()" id="snd-btn">SES: ACIK</button>
+      <button class="g-btn" onclick="switchTheme()">TEMA</button>
+      <button class="g-btn" onclick="resetGame()">SIFIRLA</button>
+      <a href="index.html" class="g-btn">KUTUPHANE</a>
+    </div>
+  </div>
+
+  <div class="g-status">
+    <span id="stat-1">GUC: %100</span>
+    <span id="stat-2">KONUM: TERMINAL</span>
+    <span id="stat-3">KAYIT: AKTIF</span>
+  </div>
+
+  <div class="g-viewport" id="story-area"></div>
+  <div class="g-choices" id="choices-area"></div>
+
+  <script>
+    var DOSYA_ID = "01";
+    var KAYIT_ANAHTARI = "OYUN_KAYIT_" + DOSYA_ID;
+
+    var SAHNELER = {
+      "baslangic": {
+        konum: "ANA TERMINAL",
+        guc: 80,
+        metin: "Kuzey Kutup arastirma istasyonunun yedek terminaline baglandiniz. Disarida firtina hizi saatte 110 kilometreye ulasiyor. Masadaki telsizden kesik bir imdat sinyali geliyor ancak jenerator yakiti azalmis durumda.",
+        secenekler: [
+          { yazi: "[1] Gucu telsiz odasina ver ve sinyali cozumle", hedef: "telsiz_odasi" },
+          { yazi: "[2] Gucu isitma sistemine aktar ve kayit defterini oku", hedef: "kayit_defteri" }
+        ]
+      },
+      "telsiz_odasi": {
+        konum: "TELSIZ ODASI",
+        guc: 50,
+        metin: "Telsiz odasina guc verildi. Parazitlerin arasindan otomatik tekrarlanan bir ses duyuluyor: 'Sektor 4 buz magarasinda mahsur kaldik. Kapinin sifresi: 4921.'",
+        secenekler: [
+          { yazi: "[1] Kar paletli aracini hazirla ve Sektor 4'e git", hedef: "baslangic" },
+          { yazi: "[2] Ana terminale geri don", hedef: "baslangic" }
+        ]
+      },
+      "kayit_defteri": {
+        konum: "ARSIV MASASI",
+        guc: 70,
+        metin: "Isitma sistemi calisti. Istasyon komutaninin son notunu aciyorsun: 'Telsizden gelen Sektor 4 sinyali otomatik bir tuzak. Kesinlikle o koordinata gitmeyin.'",
+        secenekler: [
+          { yazi: "[1] Telsiz vericisini tamamen kapat", hedef: "baslangic" },
+          { yazi: "[2] Terminale don", hedef: "baslangic" }
+        ]
+      }
+    };
+
+    var themes = ["", "theme-paper", "theme-amber"];
+    var themeIdx = parseInt(localStorage.getItem("STUDIO_THEME_IDX") || "0", 10);
+    var soundEnabled = true;
+    var audioCtx = null;
+
+    function playClickSound() {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(520, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.04);
+      } catch (e) {}
+    }
+
+    function switchTheme() {
+      themeIdx = (themeIdx + 1) % themes.length;
+      localStorage.setItem("STUDIO_THEME_IDX", themeIdx.toString());
+      document.body.className = themes[themeIdx];
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("snd-btn").innerText = soundEnabled ? "SES: ACIK" : "SES: KAPALI";
+    }
+
+    function renderScene(sceneKey) {
+      var s = SAHNELER[sceneKey];
+      if (!s) return;
+
+      localStorage.setItem(KAYIT_ANAHTARI, sceneKey);
+      document.getElementById("stat-1").innerText = "GUC: %" + s.guc;
+      document.getElementById("stat-2").innerText = "KONUM: " + s.konum;
+
+      var storyArea = document.getElementById("story-area");
+      storyArea.innerHTML = "<p>" + s.metin + "</p>";
+      storyArea.scrollTop = 0;
+
+      var choicesArea = document.getElementById("choices-area");
+      choicesArea.innerHTML = "";
+      for (var i = 0; i < s.secenekler.length; i++) {
+        (function(sec) {
+          var btn = document.createElement("button");
+          btn.className = "c-btn";
+          btn.innerText = sec.yazi;
+          btn.onclick = function() {
+            playClickSound();
+            renderScene(sec.hedef);
+          };
+          choicesArea.appendChild(btn);
+        })(s.secenekler[i]);
+      }
+    }
+
+    function resetGame() {
+      localStorage.removeItem(KAYIT_ANAHTARI);
+      renderScene("baslangic");
+    }
+
+    document.body.className = themes[themeIdx];
+    var savedScene = localStorage.getItem(KAYIT_ANAHTARI) || "baslangic";
+    renderScene(savedScene);
+  </script>
+</body>
+</html>
